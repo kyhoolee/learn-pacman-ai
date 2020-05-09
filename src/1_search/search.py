@@ -72,6 +72,9 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+
+
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -87,17 +90,158 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    from util import Stack
+    from game import Directions
+    stop = Directions.STOP
+
+    # Graph search of State-node
+
+    s = Stack()
+    startState = problem.getStartState()
+    s.push(startState)
+    isFinished = False
+
+    visited = set()
+    visited.add(startState)
+    trace = {}
+    currentState = startState
+    trace[startState] = (startState, stop)
+    while (not isFinished) and (not s.isEmpty()):
+        # if s.isEmpty():
+        #     return []
+        # print('Current-Store:: ')
+        state = s.pop()
+
+        ## Depth-first-search remove when pop
+        ## Breadth-first-search remove when visit 
+        visited.add(state)
+
+        currentState = state
+        
+        if problem.isGoalState(currentState):
+            isFinished = True
+            break
+            
+        for (nextState, action, cost) in problem.getSuccessors(state):
+            
+            if nextState not in visited:
+                trace[nextState] = (state, action)
+                s.push(nextState)
+                
+
+    actions = []
+    while True:
+        prevState, action = trace[currentState]
+        if action == stop:
+            return actions
+        currentState = prevState
+        actions.insert(0, action)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    from util import Queue
+    from game import Directions
+    stop = Directions.STOP
+
+    # Graph search of State-node
+
+    s = Queue()
+    startState = problem.getStartState()
+    s.push(startState)
+    isFinished = False
+
+    visited = set()
+    visited.add(startState)
+    trace = {}
+    currentState = startState
+    trace[startState] = (startState, stop)
+    while (not isFinished) and (not s.isEmpty()):
+        # if s.isEmpty():
+        #     return []
+        # print('Current-Store:: ')
+        state = s.pop()
+
+        currentState = state
+        
+        if problem.isGoalState(currentState):
+            isFinished = True
+            break
+            
+        for (nextState, action, cost) in problem.getSuccessors(state):
+            
+            if nextState not in visited:
+                trace[nextState] = (state, action)
+                s.push(nextState)
+                ## Depth-first-search remove when pop
+                ## Breadth-first-search remove when visit 
+                visited.add(nextState)
+                
+
+    actions = []
+    while True:
+        prevState, action = trace[currentState]
+        if action == stop:
+            return actions
+        currentState = prevState
+        actions.insert(0, action)
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    from game import Directions
+    stop = Directions.STOP
+
+    # Graph search of State-node
+    costDict = {}
+    from util import PriorityQueue
+    # import util
+    s = PriorityQueue()
+    startState = problem.getStartState()
+    costDict[startState] = 0
+    s.update(startState, 0)
+    isFinished = False
+
+    visited = set()
+    trace = {}
+    currentState = startState
+    trace[startState] = (startState, stop)
+    while not isFinished:
+        if s.isEmpty():
+            print('Error: no goal state')
+            util.raiseNotDefined()
+
+        state = s.pop()
+        visited.add(state)
+        currentState = state
+        if problem.isGoalState(currentState):
+            isFinished = True
+            break
+
+        for (nextState, action, cost) in problem.getSuccessors(state):
+            if nextState not in visited:
+                if nextState not in costDict:
+                    trace[nextState] = (state, action)
+                    costDict[nextState] = costDict[state] + cost
+                    s.update(nextState, costDict[nextState])
+                else:
+                    if costDict[nextState] > costDict[state] + cost:
+                        trace[nextState] = (state, action)
+                        costDict[nextState] = costDict[state] + cost
+                        s.update(nextState, costDict[nextState])
+    
+    actions = []
+    while True:
+        prevState, action = trace[currentState]
+        if action == stop:
+            return actions
+        currentState = prevState
+        actions.insert(0, action)
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +253,60 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    from game import Directions
+    stop = Directions.STOP
+
+    # Graph search of State-node
+    costDict = {}
+    estimateDict = {}
+
+    from util import PriorityQueue
+    s = PriorityQueue()
+    startState = problem.getStartState()
+    costDict[startState] = 0
+    estimateDict[startState] = costDict[startState] + heuristic(startState, problem)
+    s.update(startState, estimateDict[startState])
+    isFinished = False
+
+    visited = set()
+    trace = {}
+    currentState = startState
+    trace[startState] = (startState, stop)
+    while not isFinished:
+        if s.isEmpty():
+            print('Error: no goal state')
+            util.raiseNotDefined()
+
+        state = s.pop()
+        visited.add(state)
+        currentState = state
+        if problem.isGoalState(currentState):
+            isFinished = True
+            break
+            
+        for (nextState, action, cost) in problem.getSuccessors(state):
+            
+            if nextState not in visited:
+                if nextState not in costDict:
+                    trace[nextState] = (state, action)
+                    costDict[nextState] = costDict[state] + cost
+                    estimateDict[nextState] = costDict[nextState] + heuristic(nextState, problem)
+                    s.update(nextState, estimateDict[nextState])
+                else:
+                    if costDict[nextState] > costDict[state] + cost:
+                        trace[nextState] = (state, action)
+                        costDict[nextState] = costDict[state] + cost
+                        estimateDict[nextState] = costDict[nextState] + heuristic(nextState, problem)
+                        s.update(nextState, estimateDict[nextState])
+    
+    actions = []
+    while True:
+        prevState, action = trace[currentState]
+        if action == stop:
+            return actions
+        currentState = prevState
+        actions.insert(0, action)
 
 
 # Abbreviations
@@ -117,3 +314,5 @@ bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+
+
